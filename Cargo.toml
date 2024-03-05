@@ -1,0 +1,13 @@
+[package]
+name = "tuibox"
+version = "0.1.0"
+edition = "2021"
+
+[[example]]
+name = "demo-basic"
+
+[dependencies]
+termios = "*"
+ioctls = "*"
+nix = { version = "*", features = ["term"] }
+libc = "*"
