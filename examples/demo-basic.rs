@@ -18,13 +18,17 @@ fn draw(b: &mut UIBox) -> String {
 }
 
 fn click(u: &mut UI, b: &mut UIBox, _: i32, _: i32, _: Mouse) {
-    b.set_data(String::from("\x1b[0m                \n  you clicked me!  \n                "));
+    b.set_data(String::from(
+        "\x1b[0m                \n  you clicked me!  \n                ",
+    ));
     b.set_next_state(1);
     u.draw_one(b, true);
 }
 
 fn hover(u: &mut UI, b: &mut UIBox, _: i32, _: i32) {
-    b.set_data(String::from("\x1b[0m                \n  you hovered me!  \n                "));
+    b.set_data(String::from(
+        "\x1b[0m                \n  you hovered me!  \n                ",
+    ));
     b.set_next_state(2);
     u.draw_one(b, true);
 }

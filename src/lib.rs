@@ -395,8 +395,13 @@ impl UI {
     }
 
     fn get_winsize() -> Size {
-        let ws = libc::winsize { ws_row: 0, ws_col: 0, ws_xpixel: 0, ws_ypixel: 0 };
-        if unsafe { libc::ioctl(libc::STDIN_FILENO, libc::TIOCGWINSZ, &ws) } != 0 {
+        let mut ws = libc::winsize {
+            ws_row: 0,
+            ws_col: 0,
+            ws_xpixel: 0,
+            ws_ypixel: 0,
+        };
+        if unsafe { libc::ioctl(libc::STDIN_FILENO, libc::TIOCGWINSZ, &mut ws) } != 0 {
             panic!("TIOCGWINSZ Error");
         }
         Size {
