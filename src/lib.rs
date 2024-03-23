@@ -1,15 +1,9 @@
-use std::{
-    io::{Read, Write},
-    // mem::transmute,
-    // os::raw::c_ushort,
-    str::Split,
-};
-
+use std::io::{Read, Write};
 use termios::{tcsetattr, Termios, ECHO, ICANON, TCSANOW};
 
-type OnClick = fn(&mut UI, &mut UIBox, i32, i32, Mouse);
-type OnHover = fn(&mut UI, &mut UIBox, i32, i32);
-type OnEvent = fn(&mut UI);
+pub type OnClick = fn(&mut UI, &mut UIBox, i32, i32, Mouse);
+pub type OnHover = fn(&mut UI, &mut UIBox, i32, i32);
+pub type OnEvent = fn(&mut UI);
 
 #[derive(Debug, Clone, Copy)]
 pub enum Mouse {
@@ -85,13 +79,9 @@ pub struct UI {
 }
 
 impl UI {
-    pub fn size(&self) -> Size {
-        self.size
-    }
-
     /// Initializes a new UI struct
     pub fn new(s: i32) -> UI {
-        let size = get_winsize();
+        let size = Self::get_winsize();
         let tio = Termios::from_fd(libc::STDIN_FILENO).expect("termios from fd");
 
         let mut raw = tio;
@@ -112,6 +102,10 @@ impl UI {
             id: 0,
             force: false,
         }
+    }
+
+    pub fn size(&self) -> Size {
+        self.size
     }
 
     /// Adds a new box to the UI.
@@ -209,21 +203,16 @@ impl UI {
             return;
         }
 
-        let mut buf = String::new();
-        // cache outdated
         if self.force || b.state_next != b.state_cur {
+            b.cache.clear();
             if let Some(draw) = b.draw {
-                buf = draw(b);
+                b.cache = draw(b);
             }
-            b.cache = buf.clone();
-
             b.state_cur = b.state_next;
-        } else {
-            buf = b.cache.clone();
         }
 
         let mut n = 0;
-        for tok in buf.split('\n') {
+        for tok in b.cache.split('\n') {
             let cursor_y = self.cursor_y(b, n);
             if 1 <= b.x
                 && b.x <= self.size.w as i32
@@ -283,7 +272,7 @@ impl UI {
         }
     }
 
-    fn cursor(&self, toks: &mut Split<char>) -> (i32, i32) {
+    fn cursor(&self, toks: &mut std::str::Split<char>) -> (i32, i32) {
         let x = toks.next().unwrap().parse().unwrap();
 
         let tok = toks.next().unwrap();
@@ -404,6 +393,17 @@ impl UI {
             self.mouse_hover(self.cursor(&mut toks));
         }
     }
+
+    fn get_winsize() -> Size {
+        let ws = libc::winsize { ws_row: 0, ws_col: 0, ws_xpixel: 0, ws_ypixel: 0 };
+        if unsafe { libc::ioctl(libc::STDIN_FILENO, libc::TIOCGWINSZ, &ws) } != 0 {
+            panic!("TIOCGWINSZ Error");
+        }
+        Size {
+            w: ws.ws_col as i32,
+            h: ws.ws_row as i32,
+        }
+    }
 }
 
 impl Drop for UI {
@@ -421,17 +421,5 @@ impl Drop for UI {
                 );
             }
         }
-    }
-}
-
-fn get_winsize() -> Size {
-    // FIXME: tiocgwinsz not works on my pc
-    // let (ws_row, ws_col): (c_ushort, c_ushort) =
-    //     unsafe { transmute(ioctls::tiocgwinsz(libc::STDIN_FILENO)) };
-    Size {
-        // w: ws_col as i32,
-        // h: ws_row as i32,
-        w: 80,
-        h: 24,
     }
 }

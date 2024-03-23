@@ -1,5 +1,3 @@
-use std::process::exit;
-
 use tuibox::{Mouse, Position, UIBox, UI};
 
 fn draw(b: &mut UIBox) -> String {
@@ -32,7 +30,7 @@ fn hover(u: &mut UI, b: &mut UIBox, _: i32, _: i32) {
 }
 
 fn stop(_: &mut UI) {
-    exit(0);
+    std::process::exit(0);
 }
 
 fn main() {
@@ -59,8 +57,6 @@ fn main() {
     );
 
     ui.key('q', stop);
-
     ui.draw();
-
     ui.run();
 }
