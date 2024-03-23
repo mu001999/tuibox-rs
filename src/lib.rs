@@ -33,16 +33,29 @@ pub struct UIBox {
     _id: i32,
     x: i32,
     y: i32,
-    pub size: Size,
+    size: Size,
     screen: i32,
     cache: String,
-    pub state_cur: i32,
-    pub state_next: i32,
+    state_cur: i32,
+    state_next: i32,
     draw: Option<fn(&mut UIBox) -> String>,
     onclick: Option<OnClick>,
     onhover: Option<OnHover>,
-    pub data1: String,
-    pub data2: String,
+    data: String,
+}
+
+impl UIBox {
+    pub fn size(&self) -> Size {
+        self.size
+    }
+
+    pub fn set_next_state(&mut self, state: i32) {
+        self.state_next = state;
+    }
+
+    pub fn set_data(&mut self, data: String) {
+        self.data = data;
+    }
 }
 
 impl UIBox {
@@ -60,7 +73,7 @@ struct UIEvt {
 #[derive(Debug)]
 pub struct UI {
     tio: Termios,
-    pub size: Size,
+    size: Size,
     boxs: Vec<UIBox>,
     evts: Vec<UIEvt>,
     click: Option<UIBox>,
@@ -72,6 +85,10 @@ pub struct UI {
 }
 
 impl UI {
+    pub fn size(&self) -> Size {
+        self.size
+    }
+
     /// Initializes a new UI struct
     pub fn new(s: i32) -> UI {
         let size = get_winsize();
@@ -107,8 +124,7 @@ impl UI {
         draw: Option<fn(&mut UIBox) -> String>,
         onclick: Option<OnClick>,
         onhover: Option<OnHover>,
-        data1: String,
-        data2: String,
+        data: String,
     ) -> i32 {
         let id = self.id;
 
@@ -129,8 +145,7 @@ impl UI {
             draw,
             onclick,
             onhover,
-            data1,
-            data2,
+            data,
             cache: String::new(),
         };
 
@@ -173,7 +188,6 @@ impl UI {
             click,
             hover,
             str,
-            String::new(),
         )
     }
 
@@ -258,7 +272,7 @@ impl UI {
 
 impl UI {
     fn _text(b: &mut UIBox) -> String {
-        std::mem::take(&mut b.data1)
+        std::mem::take(&mut b.data)
     }
 
     fn cursor_y(&self, b: &UIBox, n: i32) -> i32 {
